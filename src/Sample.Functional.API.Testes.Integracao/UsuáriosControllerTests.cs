@@ -53,11 +53,11 @@ namespace Sample.Functional.API.Testes.Integracao
             resposta.StatusCode.Should().Be(HttpStatusCode.OK);
             jsonObtido.Should().NotBeNullOrEmpty();
             jsonObtido.First().ShouldBeEquivalentTo(
-                new Usuário(0, usuárioDeTestes.Nome, usuárioDeTestes.Idade, new List<Telefone>()));
+                new Usuário(1, usuárioDeTestes.Nome, usuárioDeTestes.Idade, new List<Telefone>()));
         }
 
         [Fact]
-        public async Task Deve_retornar_status_sem_conteúdo_quando_via_GET_requisitar_usuários_semm_registros_na_tabela()
+        public async Task Deve_retornar_status_sem_conteúdo_quando_via_GET_requisitar_usuários_sem_registros_na_tabela()
         {
             var clienteHttp = _servidorDeTestes.CreateClient();
             var requisicaoGet = new HttpRequestMessage(HttpMethod.Get, "api/Usuarios");
@@ -72,7 +72,47 @@ namespace Sample.Functional.API.Testes.Integracao
         }
 
         [Fact]
-        public async Task Deve_retornar_status_created_quanto_via_post_enviar_um_json_válido_representando_um_usuário()
+        public async Task Deve_retornar_status_ok_quando_via_GET_requisitar_um_usuário_por_id_com_ao_menos_um_registro_na_tabela()
+        {
+            var contexto = _servidorDeTestes.Host.Services.GetService<ContextoDeUsuários>();
+            var clienteHttp = _servidorDeTestes.CreateClient();
+            var usuárioDeTestes = new Usuário(0, "Teste 1", 20, null);
+
+            var entry = contexto.Usuários.Add(usuárioDeTestes);
+            entry.State = EntityState.Added;
+            await contexto.SaveChangesAsync();
+
+            var requisicaoGet = new HttpRequestMessage(HttpMethod.Get, "api/Usuarios/1");
+            requisicaoGet.Headers.Add("Accept", "application/json");
+
+            var resposta = await clienteHttp.SendAsync(requisicaoGet);
+
+            var jsonObtido = JsonConvert.DeserializeObject<IList<Models.DTO.Usuário>>(
+                await resposta.Content.ReadAsStringAsync());
+
+            resposta.StatusCode.Should().Be(HttpStatusCode.OK);
+            jsonObtido.Should().NotBeNullOrEmpty();
+            jsonObtido.First().ShouldBeEquivalentTo(
+                new Usuário(1, usuárioDeTestes.Nome, usuárioDeTestes.Idade, new List<Telefone>()));
+        }
+
+        [Fact]
+        public async Task Deve_retornar_status_sem_conteúdo_quando_via_GET_requisitar_um_usuários_por_id_sem_registros_na_tabela()
+        {
+            var clienteHttp = _servidorDeTestes.CreateClient();
+            var requisicaoGet = new HttpRequestMessage(HttpMethod.Get, "api/Usuarios/1");
+            requisicaoGet.Headers.Add("Accept", "application/json");
+
+            var resposta = await clienteHttp.SendAsync(requisicaoGet);
+            var jsonObtido = JsonConvert.DeserializeObject<IList<Models.DTO.Usuário>>(
+                await resposta.Content.ReadAsStringAsync());
+
+            resposta.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            jsonObtido.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Deve_retornar_status_created_quanto_via_POST_enviar_um_json_válido_representando_um_usuário()
         {
             var client = _servidorDeTestes.CreateClient();
             var usuario = new Usuário(0, "Teste", 20, new List<Telefone>());
@@ -89,10 +129,11 @@ namespace Sample.Functional.API.Testes.Integracao
 
             var response = await client.SendAsync(postRequest);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
+            response.Headers.Location.OriginalString.Should().Be("api/Usuarios/1");
         }
 
         [Fact]
-        public async Task Deve_retornar_status_badrequest_quanto_via_post_enviar_um_json_inválido()
+        public async Task Deve_retornar_status_badrequest_quanto_via_POST_enviar_um_json_inválido()
         {
             var client = _servidorDeTestes.CreateClient();
 

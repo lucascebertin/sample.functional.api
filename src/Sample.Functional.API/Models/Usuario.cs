@@ -43,6 +43,7 @@
 
         public static DTO.Usuário ConverterParaDTO(Usuário objeto) =>
             new DTO.Usuário(
+                objeto.Id,
                 objeto.Nome,
                 objeto.Idade,
                 objeto.Telefones

@@ -71,12 +71,8 @@ namespace Sample.Functional.API
                 {
                     context.MapRoute(
                         "default",
-                        "{controller}/{action}/{id?}",
-                        new
-                        {
-                            controller = "Account",
-                            action = "Get"
-                        });
+                        "{controller}/{action}/{id?}"
+                    );
                 });
         }
     }

@@ -52,6 +52,9 @@
         public static Func<T, IActionResult> CriadoComSucesso<T>(string local) =>
             x => Criado(local, x);
 
+        public static IActionResult CriadoComSucesso<T>(T dado, string local) =>
+            Criado(local, dado);
+
         public static IActionResult ProcessarComoGet<T>(
             this Option<IEnumerable<T>> optional) =>
             optional.Match(
@@ -84,6 +87,15 @@
             string local) =>
             opcional.Match(
                 x => x.ProcessarComoPost(local),
+                ErroDeValidaçãoEMotivo);
+
+        public static IActionResult ProcessarComoPost<T>(
+            this Either<string, Try<T>> opcional,
+            Func<T, string> retornarLocalDoRecursoCriado) =>
+            opcional.Match(
+                x => x.Match(
+                    y => CriadoComSucesso(y, retornarLocalDoRecursoCriado(y)), 
+                    ErroEMotivo),
                 ErroDeValidaçãoEMotivo);
 
         public static IActionResult ProcessarRequisicao<T>(

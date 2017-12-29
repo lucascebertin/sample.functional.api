@@ -44,7 +44,14 @@
             _repositórioDeUsuário.TentarObter(p => p.Telefones)
                 .Map(Usuário.ConverterParaDTO);
 
-        public Try<Option<IList<Usuário>>> ObterUsuários(Expression<Func<Usuário, object>>[] propriedades) =>
+        public Try<Option<IList<Models.DTO.Usuário>>> ObterUsuárioComTelefones(int id) =>
+            _repositórioDeUsuário.TentarObter(
+                u => u.Id == id,
+                p => p.Telefones
+            ).Map(Usuário.ConverterParaDTO);
+
+        public Try<Option<IList<Usuário>>> ObterUsuários(
+            Expression<Func<Usuário, object>>[] propriedades) =>
             _repositórioDeUsuário.TentarObter(propriedades);
     }
 }
